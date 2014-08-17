@@ -10,7 +10,6 @@ import me.paulbgd.bgdcore.commands.def.ReloadConfigCommand;
 import me.paulbgd.bgdcore.configuration.ConfigurationFile;
 import me.paulbgd.bgdcore.configuration.CoreConfiguration;
 import me.paulbgd.bgdcore.nms.NMSManager;
-import me.paulbgd.bgdcore.updater.PluginUpdater;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class BGDCore extends JavaPlugin {
@@ -36,13 +35,6 @@ public class BGDCore extends JavaPlugin {
 
         // register our own commands
         new ReloadConfigCommand(this);
-
-        new PluginUpdater(this, 52271) {
-            @Override
-            public void onLoad() {
-                System.out.println("Needs update: " + this.needsUpdate());
-            }
-        };
 
         // register our own configuration
         registerConfiguration(new CoreConfiguration(new File(getDataFolder(), "config.json")));
