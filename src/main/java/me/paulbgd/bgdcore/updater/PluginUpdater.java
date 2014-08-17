@@ -20,8 +20,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public abstract class PluginUpdater {
 
-    private final static String delimiter = "^v|[\\\\s_-]v"; // credit to Gravity, I'm not so great at regex myself.
-
     private final JavaPlugin plugin;
     private final URL url;
     private final int id;
@@ -101,17 +99,17 @@ public abstract class PluginUpdater {
                 return;
             }
             JSONObject updateData = (JSONObject) jsonArray.get(jsonArray.size() - 1);
-            String[] remoteVersionSplit = ((String) updateData.get("name")).split(delimiter);
-            if (remoteVersionSplit.length != 2) {
-                BGDCore.getLogging().warning("Invalid remote version for plugin \"" + plugin.getName() + "\"!");
+            String remoteVersion = (String) updateData.get("name");
+            if (remoteVersion.lastIndexOf("v") < remoteVersion.length() - 7) {
+                BGDCore.getLogging().warning("Invalid remote version '" + updateData.get("name") + "' (" + remoteVersion.lastIndexOf("v") + ") for plugin \"" + plugin.getName() + "\"!");
                 return;
             }
-            String hostVersion = remoteVersionSplit[1].split(" ")[0];
+            String hostVersion = remoteVersion.substring(remoteVersion.lastIndexOf("v") + 1);
             if (hostVersion.equalsIgnoreCase(plugin.getDescription().getVersion())) {
                 // same version! no update needed
                 return;
             }
-            latestFileURL = new URL("downloadUrl");
+            latestFileURL = new URL((String) updateData.get("downloadUrl"));
         }
     }
 
