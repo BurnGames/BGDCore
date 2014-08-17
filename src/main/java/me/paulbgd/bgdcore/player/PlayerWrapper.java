@@ -4,11 +4,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import lombok.Data;
+import net.minidev.json.JSONObject;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 @Data
-public class PlayerWrapper implements Players {
+public class PlayerWrapper extends JSONObject implements Players {
 
     private final UUID uniqueId;
     private final String name;
@@ -16,6 +17,11 @@ public class PlayerWrapper implements Players {
     public PlayerWrapper(Player player) {
         this.uniqueId = player.getUniqueId();
         this.name = player.getName();
+    }
+
+    public PlayerWrapper(UUID uniqueId, String name) {
+        this.uniqueId = uniqueId;
+        this.name = name;
     }
 
     public Player getPlayer() {
