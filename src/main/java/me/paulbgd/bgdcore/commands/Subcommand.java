@@ -3,6 +3,8 @@ package me.paulbgd.bgdcore.commands;
 import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
 
 @Data
@@ -22,6 +24,12 @@ public abstract class Subcommand extends CommandPiece {
 
     public List<String> getTabCompletions(int arguments) {
         return null;
+    }
+
+    public void showHelp(CommandSender commandSender) {
+        String subName = names[0], subUsage = usage + (usage.length() > 0 ? " " : "");
+
+        sendMessage(String.format("%s%sUsage: /%s %s %s - %s%s", ChatColor.GRAY, ChatColor.BOLD, this.names[0], subName, subUsage, ChatColor.DARK_GRAY, info), commandSender);
     }
 
 }
