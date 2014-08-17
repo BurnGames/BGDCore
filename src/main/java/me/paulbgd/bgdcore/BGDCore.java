@@ -2,7 +2,9 @@ package me.paulbgd.bgdcore;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import lombok.Getter;
@@ -10,12 +12,15 @@ import me.paulbgd.bgdcore.commands.def.ReloadConfigCommand;
 import me.paulbgd.bgdcore.configuration.ConfigurationFile;
 import me.paulbgd.bgdcore.configuration.CoreConfiguration;
 import me.paulbgd.bgdcore.nms.NMSManager;
+import me.paulbgd.bgdcore.player.PlayerWrapper;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class BGDCore extends JavaPlugin {
 
     @Getter
     private static final List<ConfigurationFile> configurations = new ArrayList<>();
+    private static final HashMap<UUID, PlayerWrapper> wrappers = new HashMap<>();
 
     @Getter
     private static Logger logging;
@@ -71,6 +76,13 @@ public class BGDCore extends JavaPlugin {
             throw new IllegalArgumentException("Configuration file \"" + configurationFile.getFile().getAbsolutePath() + "\" has already been registered!");
         }
         configurations.add(configurationFile);
+    }
+
+    public static PlayerWrapper getPlayerWrapper(Player player) {
+        if (!wrappers.containsKey(player.getUniqueId())) {
+            wrappers.put(player.getUniqueId(), new PlayerWrapper(player));
+        }
+        return wrappers.get(player.getUniqueId());
     }
 
 
