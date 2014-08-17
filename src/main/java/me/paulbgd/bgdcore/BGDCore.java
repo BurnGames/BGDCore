@@ -7,7 +7,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import lombok.Getter;
 import me.paulbgd.bgdcore.commands.def.ReloadConfigCommand;
-import me.paulbgd.bgdcore.commands.def.ZipTestCommand;
 import me.paulbgd.bgdcore.configuration.ConfigurationFile;
 import me.paulbgd.bgdcore.configuration.CoreConfiguration;
 import me.paulbgd.bgdcore.nms.NMSManager;
