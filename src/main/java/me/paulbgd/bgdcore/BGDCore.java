@@ -36,7 +36,7 @@ public class BGDCore extends JavaPlugin {
 
         // register our own commands
         new ReloadConfigCommand(this);
-        new ZipTestCommand();
+        // new ZipTestCommand();
 
         // register our own configuration
         registerConfiguration(new CoreConfiguration(new File(getDataFolder(), "config.json")));
