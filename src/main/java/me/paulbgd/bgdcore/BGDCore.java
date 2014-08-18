@@ -25,6 +25,7 @@ import me.paulbgd.bgdcore.player.PlayerWrapper;
 import net.minidev.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -64,6 +65,18 @@ public class BGDCore extends JavaPlugin {
 
         // register our own configuration
         registerConfiguration(new CoreConfiguration(new File(getDataFolder(), "config.json")));
+
+        // in the case of a reload, let's load our player wrappers
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            addPlayerWrapper(player.getUniqueId(), loadPlayerWrapper(player));
+        }
+    }
+
+    @Override
+    public void onDisable() {
+        for (PlayerWrapper playerWrapper : wrappers.values()) {
+            savePlayerWrapper(playerWrapper);
+        }
     }
 
     @Override
@@ -122,8 +135,10 @@ public class BGDCore extends JavaPlugin {
                 JSONInputStream jsonInputStream = new JSONInputStream(new FileInputStream(file));
                 JSONObject jsonObject = jsonInputStream.readObject();
                 IOUtils.closeQuietly(jsonInputStream);
-                for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
-                    playerWrapper.put(entry.getKey(), entry.getValue());
+                if(jsonObject != null && !jsonObject.isEmpty()) {
+                    for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+                        playerWrapper.put(entry.getKey(), entry.getValue());
+                    }
                 }
             }
         } catch (NoSuchAlgorithmException | IOException e) {

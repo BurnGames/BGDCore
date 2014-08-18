@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import lombok.Getter;
 import me.paulbgd.bgdcore.BGDCore;
+import me.paulbgd.bgdcore.json.JSONLocation;
 import me.paulbgd.bgdcore.json.JSONTidier;
 import me.paulbgd.bgdcore.reflection.ReflectionClass;
 import me.paulbgd.bgdcore.reflection.ReflectionField;
@@ -19,7 +20,6 @@ import net.minidev.json.JSONObject;
 import net.minidev.json.JSONStyle;
 import net.minidev.json.JSONValue;
 import org.apache.commons.io.FileUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
@@ -67,16 +67,31 @@ public class ConfigurationFile {
         }
         for (Map.Entry<ReflectionField, Object> entry : previous.entrySet()) {
             ReflectionField field = entry.getKey();
+            Object value = entry.getValue();
             Object currentValue = checkFieldValue(field.getValue().getObject());
             if (!jsonObject.containsKey(field.getName())) {
                 jsonObject.put(field.getName(), currentValue);
             } else {
                 Object configValue = jsonObject.get(field.getName());
-                if (!currentValue.equals(entry.getValue()) && configValue.equals(entry.getValue())) {
+                // to allow us to use .equals on null, we'll use a little hack
+                if (currentValue == null) {
+                    currentValue = "null";
+                }
+                if (value == null) {
+                    value = "null";
+                }
+                if (configValue == null) {
+                    configValue = "null";
+                }
+                if (!currentValue.equals(entry.getValue()) && configValue.equals(value)) {
                     // the config contains the old value and we have a new one to set
-                    jsonObject.put(field.getName(), currentValue);
-                } else if (!configValue.equals(entry.getValue())) {
-                    field.setValue(checkValue(configValue));
+                    jsonObject.put(field.getName(), currentValue.equals("null") ? null : currentValue);
+                    System.out.println("Saving " + getClass().getName() + "." + field.getName() + " to file");
+                    if (currentValue instanceof List) {
+                        System.out.println("Contains " + ((List) currentValue).size() + " elements!");
+                    }
+                } else if (!configValue.equals(value)) {
+                    field.setValue(checkValue(configValue.equals("null") ? null : null));
                 }
             }
         }
@@ -99,27 +114,20 @@ public class ConfigurationFile {
     }
 
     private static Object checkFieldValue(Object object) {
+        if (object == null) {
+            return object;
+        }
         if (object instanceof List) {
+            System.out.println("Saving " + object.getClass().getName() + " with " + ((List) object).size() + " elements to file!");
             List<?> list = (List<?>) object;
             object = new JSONArray();
-            for (int i = 0, object1Size = ((JSONArray) object).size(); i < object1Size; i++) {
-                ((JSONArray) object).set(i, checkFieldValue(list.get(i)));
+            for (Object o : list) {
+                System.out.println("Converted to " + checkFieldValue(o) + "!");
+                ((JSONArray) object).add(checkFieldValue(o));
             }
+            System.out.println(((JSONArray) object).size() + " elements saved!");
         } else if (object instanceof Location) {
-            Location location = (Location) object;
-            JSONObject newLocation = new JSONObject();
-            newLocation.put("type", "location");
-            newLocation.put("world", location.getWorld().getName());
-            newLocation.put("x", location.getX());
-            newLocation.put("y", location.getY());
-            newLocation.put("z", location.getZ());
-            if (location.getYaw() != 0.0f) {
-                newLocation.put("yaw", location.getYaw());
-            }
-            if (location.getPitch() != 0.0f) {
-                newLocation.put("pitch", location.getPitch());
-            }
-            object = newLocation;
+            object = new JSONLocation((Location) object);
         } else if (object instanceof Vector) {
             Vector vector = (Vector) object;
             JSONObject newVector = new JSONObject();
@@ -140,6 +148,9 @@ public class ConfigurationFile {
     }
 
     private static Object checkValue(Object object) {
+        if (object == null) {
+            return object;
+        }
         switch (object.getClass().getSimpleName()) {
             case "ArrayList":
             case "LinkedList":
@@ -159,24 +170,12 @@ public class ConfigurationFile {
                 if (json.containsKey("type")) {
                     switch ((String) json.get("type")) {
                         case "location":
-                            String world = (String) json.get("world");
+                            object = new JSONLocation(json).getLocation();
+                            break;
+                        case "vector":
                             double x = Double.parseDouble(json.get("x").toString());
                             double y = Double.parseDouble(json.get("y").toString());
                             double z = Double.parseDouble(json.get("z").toString());
-                            float yaw = 0.0f;
-                            float pitch = 0.0f;
-                            if (json.containsKey("yaw")) {
-                                yaw = Float.parseFloat(json.get("yaw").toString());
-                            }
-                            if (json.containsKey("pitch")) {
-                                pitch = Float.parseFloat(json.get("pitch").toString());
-                            }
-                            object = new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
-                            break;
-                        case "vector":
-                            x = Double.parseDouble(json.get("x").toString());
-                            y = Double.parseDouble(json.get("y").toString());
-                            z = Double.parseDouble(json.get("z").toString());
                             object = new Vector(x, y, z);
                             break;
                         case "enum":
