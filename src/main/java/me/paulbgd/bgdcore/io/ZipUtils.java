@@ -15,9 +15,6 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-/*
- * TODO test me (more specifically zipDirectory and extractZip)
- */
 public class ZipUtils {
 
     public static void writeZip(HashMap<InputStream, String> hashMap, OutputStream outputStream) throws IOException {
