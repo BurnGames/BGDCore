@@ -86,10 +86,6 @@ public class ConfigurationFile {
                 if (!currentValue.equals(entry.getValue()) && configValue.equals(value)) {
                     // the config contains the old value and we have a new one to set
                     jsonObject.put(field.getName(), currentValue.equals("null") ? null : currentValue);
-                    System.out.println("Saving " + getClass().getName() + "." + field.getName() + " to file");
-                    if (currentValue instanceof List) {
-                        System.out.println("Contains " + ((List) currentValue).size() + " elements!");
-                    }
                 } else if (!configValue.equals(value)) {
                     field.setValue(checkValue(configValue.equals("null") ? null : null));
                 }
@@ -118,14 +114,11 @@ public class ConfigurationFile {
             return object;
         }
         if (object instanceof List) {
-            System.out.println("Saving " + object.getClass().getName() + " with " + ((List) object).size() + " elements to file!");
             List<?> list = (List<?>) object;
             object = new JSONArray();
             for (Object o : list) {
-                System.out.println("Converted to " + checkFieldValue(o) + "!");
                 ((JSONArray) object).add(checkFieldValue(o));
             }
-            System.out.println(((JSONArray) object).size() + " elements saved!");
         } else if (object instanceof Location) {
             object = new JSONLocation((Location) object);
         } else if (object instanceof Vector) {

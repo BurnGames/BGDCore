@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import lombok.Getter;
 import me.paulbgd.bgdcore.BGDCore;
-import me.paulbgd.bgdcore.nms.versions.v1_7_3_R3;
+import me.paulbgd.bgdcore.nms.versions.v1_7_2_R1;
 import me.paulbgd.bgdcore.reflection.Reflection;
 
 public class NMSManager {
@@ -14,7 +14,7 @@ public class NMSManager {
 
     static {
         // these are here so that we can discard the references when this is all over
-        Class<?>[] registered = new Class<?>[]{v1_7_3_R3.class};
+        Class<?>[] registered = new Class<?>[]{v1_7_2_R1.class};
         WeakHashMap<Integer, Class<?>> versions = new WeakHashMap<>(registered.length); // weakling
 
         for (Class<?> aClass : registered) {
