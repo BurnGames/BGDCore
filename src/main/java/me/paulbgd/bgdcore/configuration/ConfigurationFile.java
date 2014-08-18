@@ -4,14 +4,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import me.paulbgd.bgdcore.BGDCore;
+import me.paulbgd.bgdcore.json.JSONTidier;
 import me.paulbgd.bgdcore.reflection.ReflectionClass;
 import me.paulbgd.bgdcore.reflection.ReflectionField;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONStyle;
 import net.minidev.json.JSONValue;
@@ -20,15 +23,20 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
-@EqualsAndHashCode
 public class ConfigurationFile {
 
     @Getter
     private final File file;
     private final HashMap<ReflectionField, Object> previous = new HashMap<>();
+    private final ConfigurationType configurationType;
 
     public ConfigurationFile(File file) {
+        this(file, ConfigurationType.STATIC);
+    }
+
+    public ConfigurationFile(File file, ConfigurationType configurationType) {
         this.file = file;
+        this.configurationType = configurationType;
         try {
             // we need to call the following in the reverse order to fill our hashmap
             updateDefaults();
@@ -45,14 +53,17 @@ public class ConfigurationFile {
     }
 
     private void updateJSON() throws Exception {
-        JSONObject jsonObject;
-        if (!file.exists()) {
-            if (!file.createNewFile()) {
-                throw new FileNotFoundException("Failed to create file \"" + file.getAbsolutePath() + "\"!");
-            }
-            jsonObject = new JSONObject();
+        JSONObject jsonObject = null;
+        if (!file.exists() && !file.createNewFile()) {
+            throw new FileNotFoundException("Failed to create file \"" + file.getAbsolutePath() + "\"!");
         } else {
-            jsonObject = (JSONObject) JSONValue.parse(FileUtils.readFileToString(file)); // reload from file
+            String json = FileUtils.readFileToString(file);
+            if (json != null && !json.equals("") && !json.equals(" ")) {
+                jsonObject = (JSONObject) JSONValue.parse(json); // reload from file
+            }
+        }
+        if (jsonObject == null) {
+            jsonObject = new JSONObject();
         }
         for (Map.Entry<ReflectionField, Object> entry : previous.entrySet()) {
             ReflectionField field = entry.getKey();
@@ -69,25 +80,36 @@ public class ConfigurationFile {
                 }
             }
         }
-        FileUtils.write(file, jsonObject.toJSONString(JSONStyle.NO_COMPRESS));
+        try {
+            FileUtils.write(file, JSONTidier.tidyJSON(jsonObject.toJSONString(JSONStyle.NO_COMPRESS)));
+        } catch (Exception e) {
+            BGDCore.getLogging().warning("Failed to save \"" + file.getAbsolutePath() + "\" to file!");
+            e.printStackTrace();
+        }
     }
 
     private void updateDefaults() {
         // load to be previous fields
         for (Field field : getClass().getDeclaredFields()) {
-            if (Modifier.isPublic(field.getModifiers()) && Modifier.isStatic(field.getModifiers()) && !Modifier.isFinal(field.getModifiers())) {
-                ReflectionField reflectionField = new ReflectionField(null, field);
+            if (isValidField(field.getModifiers()) && !Modifier.isFinal(field.getModifiers())) {
+                ReflectionField reflectionField = new ReflectionField(configurationType == ConfigurationType.STATIC ? null : this, field);
                 previous.put(reflectionField, reflectionField.getValue().getObject());
             }
         }
     }
 
     private static Object checkFieldValue(Object object) {
-        if (object instanceof Location) {
+        if (object instanceof List) {
+            List<?> list = (List<?>) object;
+            object = new JSONArray();
+            for (int i = 0, object1Size = ((JSONArray) object).size(); i < object1Size; i++) {
+                ((JSONArray) object).set(i, checkFieldValue(list.get(i)));
+            }
+        } else if (object instanceof Location) {
             Location location = (Location) object;
             JSONObject newLocation = new JSONObject();
             newLocation.put("type", "location");
-            newLocation.put("world", location.getWorld());
+            newLocation.put("world", location.getWorld().getName());
             newLocation.put("x", location.getX());
             newLocation.put("y", location.getY());
             newLocation.put("z", location.getZ());
@@ -119,6 +141,19 @@ public class ConfigurationFile {
 
     private static Object checkValue(Object object) {
         switch (object.getClass().getSimpleName()) {
+            case "ArrayList":
+            case "LinkedList":
+                List list = (List) object;
+                for (int i = 0, listSize = list.size(); i < listSize; i++) {
+                    list.set(i, checkValue(list.get(i)));
+                }
+            case "JSONArray":
+                JSONArray jsonArray = (JSONArray) object;
+                List<Object> list2 = new ArrayList<>();
+                for (Object o : jsonArray) {
+                    list2.add(checkValue(o));
+                }
+                object = list2;
             case "JSONObject":
                 JSONObject json = (JSONObject) object;
                 if (json.containsKey("type")) {
@@ -157,6 +192,18 @@ public class ConfigurationFile {
             default:
                 return object;
         }
+    }
+
+    private boolean isValidField(int modifiers) {
+        if (configurationType == ConfigurationType.STATIC) {
+            return Modifier.isStatic(modifiers);
+        } else {
+            return !Modifier.isStatic(modifiers);
+        }
+    }
+
+    public static enum ConfigurationType {
+        OBJECT, STATIC;
     }
 
 }

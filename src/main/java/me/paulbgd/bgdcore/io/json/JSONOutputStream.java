@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
+import net.minidev.json.JSONStyle;
 import org.apache.commons.io.IOUtils;
 
 public class JSONOutputStream extends GZIPOutputStream {
@@ -12,13 +13,13 @@ public class JSONOutputStream extends GZIPOutputStream {
     public JSONOutputStream(JSONObject jsonObject, OutputStream out) throws IOException {
         super(out);
 
-        write(jsonObject.toJSONString());
+        write(jsonObject.toJSONString(JSONStyle.MAX_COMPRESS));
     }
 
     public JSONOutputStream(JSONArray jsonArray, OutputStream outputStream) throws IOException {
         super(outputStream);
 
-        write(jsonArray.toJSONString());
+        write(jsonArray.toJSONString(JSONStyle.MAX_COMPRESS));
     }
 
     private void write(String string) throws IOException {

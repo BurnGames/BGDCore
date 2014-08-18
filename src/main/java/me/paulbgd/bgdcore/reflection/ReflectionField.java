@@ -9,6 +9,14 @@ public class ReflectionField {
     private final Object object;
     private final Field field;
 
+    public ReflectionField(Object object, Field field) {
+        if (!field.isAccessible()) {
+            field.setAccessible(true);
+        }
+        this.object = object;
+        this.field = field;
+    }
+
     public ReflectionObject getValue() {
         try {
             return new ReflectionObject(field.get(object));

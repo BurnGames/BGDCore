@@ -29,7 +29,7 @@ public abstract class Subcommand extends CommandPiece {
     public void showHelp(CommandSender commandSender) {
         String subName = names[0], subUsage = usage + (usage.length() > 0 ? " " : "");
 
-        sendMessage(String.format("%s%sUsage: /%s %s %s - %s%s", ChatColor.GRAY, ChatColor.BOLD, this.names[0], subName, subUsage, ChatColor.DARK_GRAY, info), commandSender);
+        sendMessage(String.format("%s%sUsage: /<command> %s %s - %s%s", ChatColor.GRAY, ChatColor.BOLD, subName, subUsage, ChatColor.DARK_GRAY, info), commandSender);
     }
 
 }

@@ -44,7 +44,6 @@ public abstract class Command extends CommandPiece implements TabExecutor {
 
         // finish off by registering us in bukkit - no need for yaml!
         registerCommand(names);
-        javaPlugin.getCommand(names[0]).setExecutor(this);
     }
 
     protected void addSubCommand(Subcommand... subcommand) {
@@ -122,6 +121,7 @@ public abstract class Command extends CommandPiece implements TabExecutor {
     private boolean registerCommand(String[] aliases) {
         PluginCommand command = getCommand(aliases[0], javaPlugin);
         command.setAliases(Arrays.asList(aliases));
+        command.setExecutor(this);
         getCommandMap().register(javaPlugin.getName(), command);
         return true;
     }

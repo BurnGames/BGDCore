@@ -5,9 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
@@ -144,6 +141,7 @@ public class BGDCore extends JavaPlugin {
                 JSONInputStream jsonInputStream = new JSONInputStream(new FileInputStream(file));
                 JSONObject jsonObject = jsonInputStream.readObject();
                 IOUtils.closeQuietly(jsonInputStream);
+
                 for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
                     playerWrapper.put(entry.getKey(), entry.getValue());
                 }
@@ -167,12 +165,7 @@ public class BGDCore extends JavaPlugin {
     }
 
     private static String getUUIDHash(UUID uniqueId) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-        byte[] bytes = new byte[16];
-        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-        byteBuffer.order(ByteOrder.BIG_ENDIAN);
-        byteBuffer.putLong(uniqueId.getMostSignificantBits());
-        byteBuffer.putLong(uniqueId.getLeastSignificantBits());
-        return new String(MessageDigest.getInstance("MD5").digest(bytes), "UTF-8");
+        return Long.toHexString(uniqueId.getLeastSignificantBits()) + Long.toOctalString(uniqueId.getMostSignificantBits());
     }
 
 
