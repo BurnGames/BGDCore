@@ -1,5 +1,6 @@
 package me.paulbgd.bgdcore.io;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -67,7 +68,9 @@ public class ZipUtils {
         ZipEntry entry = zipInputStream.getNextEntry();
         while (entry != null) {
             if (!entry.isDirectory()) {
-                // todo: load data, look it up because you're a nub
+                byte[] bytes = new byte[zipInputStream.available()];
+                IOUtils.readFully(zipInputStream, bytes);
+                list.put(new ByteArrayInputStream(bytes), entry.getName());
             }
             zipInputStream.closeEntry();
             entry = zipInputStream.getNextEntry();

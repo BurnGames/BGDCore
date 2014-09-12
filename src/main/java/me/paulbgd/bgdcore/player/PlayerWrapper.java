@@ -4,14 +4,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import lombok.Data;
+import lombok.Setter;
+import me.paulbgd.bgdcore.blocks.block.Blocks;
 import net.minidev.json.JSONObject;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 @Data
 public class PlayerWrapper extends JSONObject implements Players {
 
     private final UUID uniqueId;
+
+    @Setter
+    private Block pointOne;
+    @Setter
+    private Block pointTwo;
+    @Setter
+    private Blocks clipboard;
 
     public PlayerWrapper(Player player) {
         this(player.getUniqueId());

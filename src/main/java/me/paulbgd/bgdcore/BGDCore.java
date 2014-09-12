@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +26,7 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class BGDCore extends JavaPlugin {
 
@@ -113,10 +112,14 @@ public class BGDCore extends JavaPlugin {
     }
 
     public static PlayerWrapper getPlayerWrapper(Player player) {
-        if (!wrappers.containsKey(player.getUniqueId())) {
-            wrappers.put(player.getUniqueId(), loadPlayerWrapper(player));
+        return getPlayerWrapper(player.getUniqueId());
+    }
+
+    public static PlayerWrapper getPlayerWrapper(UUID uuid) {
+        if (!wrappers.containsKey(uuid)) {
+            wrappers.put(uuid, loadPlayerWrapper(uuid));
         }
-        return wrappers.get(player.getUniqueId());
+        return wrappers.get(uuid);
     }
 
     public static void addPlayerWrapper(UUID uuid, PlayerWrapper playerWrapper) {
@@ -149,26 +152,45 @@ public class BGDCore extends JavaPlugin {
                     playerWrapper.put(entry.getKey(), entry.getValue());
                 }
             }
-        } catch (NoSuchAlgorithmException | IOException e) {
+        } catch (IOException e) {
             // neither of these should happen, but oh well
             e.printStackTrace();
         }
         return playerWrapper;
     }
 
-    public static void savePlayerWrapper(PlayerWrapper playerWrapper) {
+    public static void savePlayerWrapper(final PlayerWrapper playerWrapper) {
+        if (Bukkit.isPrimaryThread()) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    savePlayerWrapper(playerWrapper);
+                }
+            }.runTaskAsynchronously(getPlugin(BGDCore.class));
+            return;
+        }
         Validate.notNull(playerWrapper);
         try {
             File file = new File(playerFolder, getUUIDHash(playerWrapper.getUniqueId()));
             JSONOutputStream jsonOutputStream = new JSONOutputStream(playerWrapper, new FileOutputStream(file));
             jsonOutputStream.close();
-        } catch (NoSuchAlgorithmException | IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static String getUUIDHash(UUID uniqueId) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-        return Long.toHexString(uniqueId.getLeastSignificantBits()) + Long.toOctalString(uniqueId.getMostSignificantBits());
+    private static String getUUIDHash(UUID uniqueId) {
+        return uniqueId.toString();
+    }
+
+    public static List<PlayerWrapper> loadAllWrappers() {
+        List<PlayerWrapper> wrappers = new ArrayList<>();
+        if (playerFolder != null && playerFolder.isDirectory()) {
+            for (String file : playerFolder.list()) {
+                wrappers.add(loadPlayerWrapper(UUID.fromString(file)));
+            }
+        }
+        return wrappers;
     }
 
 

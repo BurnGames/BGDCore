@@ -56,7 +56,7 @@ public class ConfigurationFile {
         updateDefaults();
     }
 
-    protected void updateJSON() throws Exception {
+    protected JSONObject updateJSON() throws Exception {
         JSONObject jsonObject = null;
         if (file != null) {
             if (!file.exists() && !file.createNewFile()) {
@@ -105,6 +105,7 @@ public class ConfigurationFile {
                 e.printStackTrace();
             }
         }
+        return jsonObject;
     }
 
     protected void updateDefaults() {
