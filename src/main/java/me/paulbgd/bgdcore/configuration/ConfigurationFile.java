@@ -56,7 +56,7 @@ public class ConfigurationFile {
         updateDefaults();
     }
 
-    private void updateJSON() throws Exception {
+    protected void updateJSON() throws Exception {
         JSONObject jsonObject = null;
         if (file != null) {
             if (!file.exists() && !file.createNewFile()) {
@@ -97,7 +97,7 @@ public class ConfigurationFile {
                 }
             }
         }
-        if(file != null) {
+        if (file != null) {
             try {
                 FileUtils.write(file, JSONTidier.tidyJSON(jsonObject.toJSONString(JSONStyle.NO_COMPRESS)));
             } catch (Exception e) {
@@ -107,7 +107,7 @@ public class ConfigurationFile {
         }
     }
 
-    private void updateDefaults() {
+    protected void updateDefaults() {
         // load to be previous fields
         for (Field field : getClass().getDeclaredFields()) {
             if (isValidField(field.getModifiers()) && !Modifier.isFinal(field.getModifiers())) {
