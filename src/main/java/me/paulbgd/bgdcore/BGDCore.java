@@ -128,28 +128,16 @@ public class BGDCore extends JavaPlugin {
     }
 
     public static PlayerWrapper loadPlayerWrapper(Player player) {
-        PlayerWrapper playerWrapper = new PlayerWrapper(player);
-        try {
-            File file = new File(playerFolder, getUUIDHash(player.getUniqueId()));
-            if (file.exists()) {
-                JSONInputStream jsonInputStream = new JSONInputStream(new FileInputStream(file));
-                JSONObject jsonObject = jsonInputStream.readObject();
-                IOUtils.closeQuietly(jsonInputStream);
-                if(jsonObject != null && !jsonObject.isEmpty()) {
-                    for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
-                        playerWrapper.put(entry.getKey(), entry.getValue());
-                    }
-                }
-            }
-        } catch (NoSuchAlgorithmException | IOException e) {
-            // neither of these should happen, but oh well
-            e.printStackTrace();
-        }
-        return playerWrapper;
+        return loadPlayerWrapper(player.getUniqueId());
     }
 
+    @Deprecated
     public static PlayerWrapper loadPlayerWrapper(UUID uniqueId, String name) {
-        PlayerWrapper playerWrapper = new PlayerWrapper(uniqueId, name);
+        return loadPlayerWrapper(uniqueId);
+    }
+
+    public static PlayerWrapper loadPlayerWrapper(UUID uniqueId) {
+        PlayerWrapper playerWrapper = new PlayerWrapper(uniqueId);
         try {
             File file = new File(playerFolder, getUUIDHash(uniqueId));
             if (file.exists()) {

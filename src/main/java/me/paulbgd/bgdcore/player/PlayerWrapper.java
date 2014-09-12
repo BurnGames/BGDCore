@@ -12,24 +12,26 @@ import org.bukkit.entity.Player;
 public class PlayerWrapper extends JSONObject implements Players {
 
     private final UUID uniqueId;
-    private final String name;
 
     public PlayerWrapper(Player player) {
-        this.uniqueId = player.getUniqueId();
-        this.name = player.getName();
+        this(player.getUniqueId());
     }
 
-    public PlayerWrapper(UUID uniqueId, String name) {
+    public PlayerWrapper(UUID uniqueId) {
         this.uniqueId = uniqueId;
-        this.name = name;
     }
 
     public Player getPlayer() {
         Player player = Bukkit.getPlayer(uniqueId);
         if (player == null) {
-            throw new IllegalArgumentException("The player " + name + " is offline!");
+            throw new IllegalArgumentException("The player " + uniqueId + " is offline!");
         }
         return player;
+    }
+
+    @Override
+    public String getName() {
+        return toString();
     }
 
     @Override
@@ -39,7 +41,7 @@ public class PlayerWrapper extends JSONObject implements Players {
 
     @Override
     public String toString() {
-        return name;
+        return uniqueId.toString();
     }
 
 }
