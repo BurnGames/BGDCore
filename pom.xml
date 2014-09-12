@@ -6,7 +6,7 @@
 
     <groupId>me.paulbgd</groupId>
     <artifactId>BGDCore</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
     <description>A core utility ran as a plugin to save myself from doing all normal stuff by hand each time.</description>
 
     <properties>
