@@ -30,6 +30,10 @@ public class ConfigurationFile {
     private final HashMap<ReflectionField, Object> previous = new HashMap<>();
     private final ConfigurationType configurationType;
 
+    public ConfigurationFile() {
+        this(null);
+    }
+
     public ConfigurationFile(File file) {
         this(file, ConfigurationType.STATIC);
     }
@@ -54,12 +58,14 @@ public class ConfigurationFile {
 
     private void updateJSON() throws Exception {
         JSONObject jsonObject = null;
-        if (!file.exists() && !file.createNewFile()) {
-            throw new FileNotFoundException("Failed to create file \"" + file.getAbsolutePath() + "\"!");
-        } else {
-            String json = FileUtils.readFileToString(file);
-            if (json != null && !json.equals("") && !json.equals(" ")) {
-                jsonObject = (JSONObject) JSONValue.parse(json); // reload from file
+        if (file != null) {
+            if (!file.exists() && !file.createNewFile()) {
+                throw new FileNotFoundException("Failed to create file \"" + file.getAbsolutePath() + "\"!");
+            } else {
+                String json = FileUtils.readFileToString(file);
+                if (json != null && !json.equals("") && !json.equals(" ")) {
+                    jsonObject = (JSONObject) JSONValue.parse(json); // reload from file
+                }
             }
         }
         if (jsonObject == null) {
@@ -91,11 +97,13 @@ public class ConfigurationFile {
                 }
             }
         }
-        try {
-            FileUtils.write(file, JSONTidier.tidyJSON(jsonObject.toJSONString(JSONStyle.NO_COMPRESS)));
-        } catch (Exception e) {
-            BGDCore.getLogging().warning("Failed to save \"" + file.getAbsolutePath() + "\" to file!");
-            e.printStackTrace();
+        if(file != null) {
+            try {
+                FileUtils.write(file, JSONTidier.tidyJSON(jsonObject.toJSONString(JSONStyle.NO_COMPRESS)));
+            } catch (Exception e) {
+                BGDCore.getLogging().warning("Failed to save \"" + file.getAbsolutePath() + "\" to file!");
+                e.printStackTrace();
+            }
         }
     }
 
