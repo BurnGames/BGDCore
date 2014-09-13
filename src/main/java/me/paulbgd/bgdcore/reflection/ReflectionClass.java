@@ -14,7 +14,7 @@ public class ReflectionClass {
 
     public ReflectionObject newInstance(Object... arguments) {
         try {
-            if(arguments.length == 0) {
+            if (arguments.length == 0) {
                 return new ReflectionObject(clazz.newInstance());
             }
             Constructor<?> constructor = clazz.getDeclaredConstructor(Reflection.objectsToClassArray(arguments));
@@ -48,6 +48,45 @@ public class ReflectionClass {
                 method.setAccessible(true);
             }
             return new ReflectionMethod(null, method);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public ReflectionMethod getStaticMethod(String name, Class[] arguments) {
+        try {
+            Method method = clazz.getDeclaredMethod(name, arguments);
+            if (!method.isAccessible()) {
+                method.setAccessible(true);
+            }
+            return new ReflectionMethod(null, method);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public ReflectionMethod getMethod(Object instance, String name, Object... arguments) {
+        try {
+            Method method = clazz.getDeclaredMethod(name, Reflection.objectsToClassArray(arguments));
+            if (!method.isAccessible()) {
+                method.setAccessible(true);
+            }
+            return new ReflectionMethod(instance, method);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public ReflectionMethod getMethod(Object instance, String name, Class[] arguments) {
+        try {
+            Method method = clazz.getDeclaredMethod(name, arguments);
+            if (!method.isAccessible()) {
+                method.setAccessible(true);
+            }
+            return new ReflectionMethod(instance, method);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }

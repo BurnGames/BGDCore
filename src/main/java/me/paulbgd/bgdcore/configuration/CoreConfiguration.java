@@ -12,4 +12,6 @@ public class CoreConfiguration extends ConfigurationFile {
 
     public static List<String> Plugins_Not_To_Update = new ArrayList<>();
 
+    public static boolean debugMode = false;
+
 }

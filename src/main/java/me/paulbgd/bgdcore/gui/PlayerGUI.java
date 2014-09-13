@@ -145,7 +145,11 @@ public abstract class PlayerGUI implements Listener {
         if (event.getWhoClicked().getUniqueId().equals(this.uuid) && event.getInventory().equals(this.inventory)) {
             if (event.getCurrentItem() != null && this.inventory.contains(event.getCurrentItem())) {
                 event.setCancelled(true);
-                this.onClick((Player) event.getWhoClicked(), event.getCurrentItem());
+                try {
+                    this.onClick((Player) event.getWhoClicked(), event.getCurrentItem());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 HumanEntity who = event.getWhoClicked();
                 ((Player) who).playSound(who.getLocation(), Sound.FIRE_IGNITE, 0.3f, 0.3f);
             }

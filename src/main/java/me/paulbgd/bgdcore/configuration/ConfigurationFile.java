@@ -2,13 +2,14 @@ package me.paulbgd.bgdcore.configuration;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
+import java.util.UUID;
 import lombok.Getter;
 import me.paulbgd.bgdcore.BGDCore;
 import me.paulbgd.bgdcore.json.JSONLocation;
@@ -46,7 +47,7 @@ public class ConfigurationFile {
             updateDefaults();
             updateJSON();
         } catch (Exception e) {
-            BGDCore.getLogging().log(Level.SEVERE, "Failed to update configuration to file \"" + file.getAbsolutePath() + "\"!");
+            BGDCore.debug("Failed to update configuration to file \"" + (file != null ? file.getAbsolutePath() : "") + "\"!");
             e.printStackTrace();
         }
     }
@@ -57,17 +58,7 @@ public class ConfigurationFile {
     }
 
     protected JSONObject updateJSON() throws Exception {
-        JSONObject jsonObject = null;
-        if (file != null) {
-            if (!file.exists() && !file.createNewFile()) {
-                throw new FileNotFoundException("Failed to create file \"" + file.getAbsolutePath() + "\"!");
-            } else {
-                String json = FileUtils.readFileToString(file);
-                if (json != null && !json.equals("") && !json.equals(" ")) {
-                    jsonObject = (JSONObject) JSONValue.parse(json); // reload from file
-                }
-            }
-        }
+        JSONObject jsonObject = getCurrent();
         if (jsonObject == null) {
             jsonObject = new JSONObject();
         }
@@ -93,7 +84,7 @@ public class ConfigurationFile {
                     // the config contains the old value and we have a new one to set
                     jsonObject.put(field.getName(), currentValue.equals("null") ? null : currentValue);
                 } else if (!configValue.equals(value)) {
-                    field.setValue(checkValue(configValue.equals("null") ? null : null));
+                    field.setValue(checkValue(configValue.equals("null") ? null : configValue));
                 }
             }
         }
@@ -106,6 +97,21 @@ public class ConfigurationFile {
             }
         }
         return jsonObject;
+    }
+
+    protected JSONObject getCurrent() throws IOException {
+        if (file == null) {
+            return null;
+        }
+        if (!file.exists() && !file.createNewFile()) {
+            throw new FileNotFoundException("Failed to create file \"" + file.getAbsolutePath() + "\"!");
+        } else {
+            String json = FileUtils.readFileToString(file);
+            if (json != null && !json.equals("") && !json.equals(" ")) {
+                return (JSONObject) JSONValue.parse(json); // reload from file
+            }
+        }
+        return null;
     }
 
     protected void updateDefaults() {
@@ -145,6 +151,11 @@ public class ConfigurationFile {
             jsonObject.put("enum", anEnum.getClass().getName());
             jsonObject.put("value", anEnum.name());
             object = jsonObject;
+        } else if (object instanceof UUID) {
+            JSONObject uuid = new JSONObject();
+            uuid.put("type", "uuid");
+            uuid.put("uuid", object.toString());
+            return uuid;
         }
         return object;
     }
@@ -160,13 +171,14 @@ public class ConfigurationFile {
                 for (int i = 0, listSize = list.size(); i < listSize; i++) {
                     list.set(i, checkValue(list.get(i)));
                 }
+                return list;
             case "JSONArray":
                 JSONArray jsonArray = (JSONArray) object;
                 List<Object> list2 = new ArrayList<>();
                 for (Object o : jsonArray) {
                     list2.add(checkValue(o));
                 }
-                object = list2;
+                return list2;
             case "JSONObject":
                 JSONObject json = (JSONObject) object;
                 if (json.containsKey("type")) {
@@ -187,6 +199,9 @@ public class ConfigurationFile {
                             } catch (ClassNotFoundException e) {
                                 e.printStackTrace();
                             }
+                            break;
+                        case "uuid":
+                            object = UUID.fromString((String) json.get("uuid"));
                             break;
                     }
                 }

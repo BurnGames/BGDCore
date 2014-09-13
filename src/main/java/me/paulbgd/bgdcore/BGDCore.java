@@ -53,6 +53,9 @@ public class BGDCore extends JavaPlugin {
             logging.warning("Failed to create palyer data folder! Will continue on..");
         }
 
+        // register our own configuration
+        registerConfiguration(new CoreConfiguration(new File(getDataFolder(), "config.json")));
+
         // load nms
         new NMSManager();
 
@@ -61,9 +64,6 @@ public class BGDCore extends JavaPlugin {
 
         // register our own listeners
         getServer().getPluginManager().registerEvents(new PlayerListener(), this);
-
-        // register our own configuration
-        registerConfiguration(new CoreConfiguration(new File(getDataFolder(), "config.json")));
 
         // in the case of a reload, let's load our player wrappers
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -160,16 +160,21 @@ public class BGDCore extends JavaPlugin {
     }
 
     public static void savePlayerWrapper(final PlayerWrapper playerWrapper) {
-        if (Bukkit.isPrimaryThread()) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    savePlayerWrapper(playerWrapper);
-                }
-            }.runTaskAsynchronously(getPlugin(BGDCore.class));
-            return;
+        if (Bukkit.isPrimaryThread() && BGDCore.getPlugin(BGDCore.class).isEnabled()) {
+            try {
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        savePlayerWrapper(playerWrapper);
+                    }
+                }.runTaskAsynchronously(getPlugin(BGDCore.class));
+                return;
+            } catch (Exception e) {
+                // disabling!
+            }
         }
         Validate.notNull(playerWrapper);
+        debug("Saving " + playerWrapper.getUniqueId());
         try {
             File file = new File(playerFolder, getUUIDHash(playerWrapper.getUniqueId()));
             JSONOutputStream jsonOutputStream = new JSONOutputStream(playerWrapper, new FileOutputStream(file));
@@ -191,6 +196,16 @@ public class BGDCore extends JavaPlugin {
             }
         }
         return wrappers;
+    }
+
+    public static void debug(String message) {
+        if (CoreConfiguration.debugMode) {
+            if (logging == null) {
+                System.out.println("[BGDCore][Debug] " + message);
+            } else {
+                getLogging().severe(message);
+            }
+        }
     }
 
 

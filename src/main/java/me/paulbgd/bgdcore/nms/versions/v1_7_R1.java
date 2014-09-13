@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import me.paulbgd.bgdcore.BGDCore;
 import me.paulbgd.bgdcore.items.TransitionItem;
 import me.paulbgd.bgdcore.nms.BGDNMS;
 import me.paulbgd.bgdcore.reflection.NMSReflection;
@@ -15,41 +16,47 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 
-public class v1_7_2_R1 implements BGDNMS {
+public class v1_7_R1 implements BGDNMS {
 
     @Override
     public boolean setBlock(World world, int x, int y, int z, Material type, short data) {
         ReflectionObject nmsWorld = new ReflectionObject(world).getMethod("getHandle").invoke();
-        ReflectionMethod setTypeAndData = nmsWorld.getMethod("setTypeAndData", int.class, int.class, int.class, NMSReflection.nmsBlock.getClazz(), int.class, int.class);
-        ReflectionObject block = NMSReflection.craftMagicNumbers.getStaticMethod("getBlock", int.class).invoke(type.getId());
-        return (boolean) setTypeAndData.invoke(x, y, z, block, (int) data, 2).getObject();
+        ReflectionMethod setTypeAndData = NMSReflection.nmsWorld.getMethod(nmsWorld, "setTypeAndData", new Class[]{int.class, int.class, int.class, NMSReflection.nmsBlock.getClazz(), int.class, int.class});
+        ReflectionMethod getNMSBlock = NMSReflection.nmsBlock.getStaticMethod("e", type.getId());
+        try {
+            return (boolean) setTypeAndData.invoke(x, y, z, getNMSBlock.invoke(type.getId()).getObject(), (int) data, 2).getObject();
+        } catch (Exception e) {
+            BGDCore.debug("Failed to set block with NMS! Doing bukkit.");
+        }
+        return world.getBlockAt(x, y, z).setTypeIdAndData(type.getId(), (byte) data, true);
     }
 
     @Override
     public void setTileEntity(World world, int x, int y, int z, Object object) {
         ReflectionObject nmsWorld = new ReflectionObject(world).getMethod("getHandle").invoke();
-        ReflectionMethod getTileEntity = nmsWorld.getMethod("setTileEntity", int.class, int.class, int.class, NMSReflection.tileEntity.getClazz());
+        ReflectionMethod getTileEntity = NMSReflection.nmsWorld.getMethod(nmsWorld.getObject(), "setTileEntity", new Class[]{int.class, int.class, int.class, NMSReflection.tileEntity.getClazz()});
         getTileEntity.invoke(x, y, z, object);
     }
 
     @Override
     public ReflectionObject getTileEntity(World world, int x, int y, int z) {
         ReflectionObject nmsWorld = new ReflectionObject(world).getMethod("getHandle").invoke();
-        ReflectionMethod getTileEntity = nmsWorld.getMethod("getTileEntity", int.class, int.class, int.class);
+        ReflectionMethod getTileEntity = nmsWorld.getMethod("getTileEntity", x, y, z);
         return getTileEntity.invoke(x, y, z);
     }
 
     @Override
     public int getId(World world, int x, int y, int z) {
         ReflectionObject nmsWorld = new ReflectionObject(world).getMethod("getHandle").invoke();
-        ReflectionMethod getTileEntity = nmsWorld.getMethod("getType", int.class, int.class, int.class);
-        return (int) NMSReflection.craftMagicNumbers.getStaticMethod("getId", NMSReflection.nmsBlock.getClazz()).invoke(getTileEntity.invoke(x, y, z)).getObject();
+        ReflectionMethod getTileEntity = NMSReflection.nmsWorld.getMethod(nmsWorld.getObject(), "getType", x, y, z);
+        Object block = getTileEntity.invoke(x, y, z).getObject();
+        return (int) NMSReflection.craftMagicNumbers.getStaticMethod("getId", new Class[]{NMSReflection.nmsBlock.getClazz()}).invoke(block).getObject();
     }
 
     @Override
     public short getData(World world, int x, int y, int z) {
         ReflectionObject nmsWorld = new ReflectionObject(world).getMethod("getHandle").invoke();
-        ReflectionMethod getTileEntity = nmsWorld.getMethod("getData", int.class, int.class, int.class);
+        ReflectionMethod getTileEntity = nmsWorld.getMethod("getData", x, y, z);
         return (short) getTileEntity.invoke(x, y, z).getObject();
     }
 

@@ -24,7 +24,6 @@
 
 package me.paulbgd.bgdcore.blocks.block.loader;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,17 +35,13 @@ import me.paulbgd.bgdcore.blocks.block.Block;
 import me.paulbgd.bgdcore.blocks.block.BlockPosition;
 import me.paulbgd.bgdcore.blocks.block.Blocks;
 import me.paulbgd.bgdcore.blocks.block.data.BlockData;
-import me.paulbgd.bgdcore.nms.NMSManager;
-import me.paulbgd.bgdcore.reflection.NMSReflection;
-import me.paulbgd.bgdcore.reflection.ReflectionMethod;
-import me.paulbgd.bgdcore.reflection.ReflectionObject;
+import me.paulbgd.bgdcore.json.JSONToNewNBT;
 import net.minidev.json.JSONObject;
 import org.jnbt.ByteArrayTag;
 import org.jnbt.CompoundTag;
 import org.jnbt.IntTag;
 import org.jnbt.ListTag;
 import org.jnbt.NBTInputStream;
-import org.jnbt.NBTOutputStream;
 import org.jnbt.ShortTag;
 import org.jnbt.Tag;
 
@@ -127,12 +122,7 @@ public class SchematicFormat implements BlocksLoader {
                     continue;
                 }
                 tileJson.put("e", String.valueOf(dataBuilder.getData()));
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                NBTOutputStream nbtOutputStream = new NBTOutputStream(byteArrayOutputStream);
-                nbtOutputStream.writeTag(tileEntity);
-                ReflectionMethod a = NMSReflection.nbtCompressedStreamTools.getStaticMethod("a", InputStream.class);
-                ReflectionObject tileEntityNBT = a.invoke(byteArrayOutputStream);
-                tileJson.put("n", NMSManager.getNms().nbtToJSON(tileEntityNBT));
+                tileJson.put("n", JSONToNewNBT.getJSON(tileEntity));
                 dataBuilder.setData(tileJson);
             }
         }

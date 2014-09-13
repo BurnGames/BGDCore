@@ -95,7 +95,7 @@
                 <version>2.4</version>
                 <configuration>
                     <finalName>BGDCore</finalName>
-                    <!--<outputDirectory>C:\Users\Paul\Documents\Servers\Minecraft\Testing\plugins</outputDirectory>-->
+                    <outputDirectory>C:\Users\Paul\Documents\Servers\Minecraft\Testing\plugins</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>

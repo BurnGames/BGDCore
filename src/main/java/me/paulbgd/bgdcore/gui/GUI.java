@@ -79,7 +79,11 @@ public abstract class GUI implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getInventory().equals(this.inventory)) {
             if (event.getCurrentItem() != null && this.inventory.contains(event.getCurrentItem()) && event.getWhoClicked() instanceof Player) {
-                this.onClick((Player) event.getWhoClicked(), event.getCurrentItem());
+                try {
+                    this.onClick((Player) event.getWhoClicked(), event.getCurrentItem());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 HumanEntity who = event.getWhoClicked();
                 ((Player) who).playSound(who.getLocation(), Sound.FIRE_IGNITE, 0.3f, 0.3f);
                 event.setCancelled(true);
