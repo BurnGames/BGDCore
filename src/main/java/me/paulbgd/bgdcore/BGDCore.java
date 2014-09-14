@@ -24,6 +24,7 @@ import net.minidev.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -198,6 +199,14 @@ public class BGDCore extends JavaPlugin {
         return wrappers;
     }
 
+    public static String getCachedUsername(UUID uuid) {
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+        if (offlinePlayer != null) {
+            return offlinePlayer.getName();
+        }
+        return null;
+    }
+
     public static void debug(String message) {
         if (CoreConfiguration.debugMode) {
             if (logging == null) {
@@ -207,6 +216,5 @@ public class BGDCore extends JavaPlugin {
             }
         }
     }
-
 
 }

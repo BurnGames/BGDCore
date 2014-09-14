@@ -105,6 +105,12 @@ public class ItemBuilder {
     private boolean shiny;
 
     /**
+     * Contains all of the item data.
+     */
+    @Getter
+    private JSONObject nbt;
+
+    /**
      * Instantiates a new item builder.
      *
      * @param item the item
@@ -127,6 +133,9 @@ public class ItemBuilder {
             this.owner = ((SkullMeta) item.getItemMeta()).getOwner();
         }
         TransitionItem transitionItem = ItemConverter.getItem(item);
+        if (transitionItem.getJsonObject().containsKey("BGDCore")) {
+            this.nbt = (JSONObject) transitionItem.getJsonObject().get("BGDCore");
+        }
         if (transitionItem.isShiny()) {
             // shiny :o
             this.shiny = true;
@@ -330,6 +339,38 @@ public class ItemBuilder {
     }
 
     /**
+     * Adds some NBT data to the final item
+     *
+     * @param key   the key
+     * @param value the value
+     * @return the item builder
+     */
+    public ItemBuilder putData(String key, Object value) {
+        this.nbt.put(key, value);
+        return this;
+    }
+
+    /**
+     * Gets a specific set of data from the key
+     *
+     * @param key the key
+     * @return the item builder
+     */
+    public Object getData(String key) {
+        return this.nbt.get(key);
+    }
+
+    /**
+     * Checks if the data contains a specific key
+     *
+     * @param key the key
+     * @return the item builder
+     */
+    public boolean hasData(String key) {
+        return getData(key) != null;
+    }
+
+    /**
      * Builds the itemstack.
      *
      * @return the item stack
@@ -358,14 +399,20 @@ public class ItemBuilder {
         if (this.potion != null) {
             this.potion.apply(item);
         }
-        if (this.allEnchantments.size() == 0 && this.shiny) {
+        if (!this.nbt.isEmpty() || (this.allEnchantments.size() == 0 && this.shiny)) {
             TransitionItem transitionItem = ItemConverter.getItem(item);
             JSONObject jsonObject = transitionItem.getJsonObject();
-            if (!jsonObject.containsKey("tag")) {
-                jsonObject.put("tag", new JSONObject());
+            if (!this.nbt.isEmpty()) {
+                jsonObject.put("BGDCore", nbt);
             }
-            JSONObject tag = (JSONObject) jsonObject.get("tag");
-            tag.put("ench", new ArrayList<>());
+            if (this.shiny) {
+                if (!jsonObject.containsKey("tag")) {
+                    jsonObject.put("tag", new JSONObject());
+                }
+                JSONObject tag = (JSONObject) jsonObject.get("tag");
+                tag.put("ench", new ArrayList<>());
+            }
+            transitionItem.setJsonObject(jsonObject);
             item = transitionItem.asBukkitItem();
         }
         return item;
@@ -386,6 +433,7 @@ public class ItemBuilder {
         newBuilder.potion = potion;
         newBuilder.owner = owner;
         newBuilder.shiny = shiny;
+        newBuilder.nbt = nbt;
 
         return newBuilder;
     }
