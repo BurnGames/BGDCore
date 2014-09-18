@@ -169,7 +169,7 @@ public class Scoreboard {
             }
             scoreboard = scoreboard.parent;
         }
-        return this;
+        return scoreboard;
     }
 
     private void loadFormatters(ArrayList<NameFormatter> formatters) {
