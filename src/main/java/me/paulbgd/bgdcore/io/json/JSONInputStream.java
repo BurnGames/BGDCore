@@ -22,7 +22,11 @@ public class JSONInputStream extends GZIPInputStream {
     }
 
     private Object readJSON() {
-        return JSONValue.parse(this);
+        try {
+            return JSONValue.parse(this);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 }

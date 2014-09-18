@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -20,6 +22,7 @@ import me.paulbgd.bgdcore.io.json.JSONOutputStream;
 import me.paulbgd.bgdcore.listeners.PlayerListener;
 import me.paulbgd.bgdcore.nms.NMSManager;
 import me.paulbgd.bgdcore.player.PlayerWrapper;
+import me.paulbgd.bgdcore.player.PluginPlayerData;
 import net.minidev.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
@@ -33,6 +36,7 @@ public class BGDCore extends JavaPlugin {
 
     @Getter
     private static final List<ConfigurationFile> configurations = new ArrayList<>();
+    private static final Map<JavaPlugin, Class<? extends PluginPlayerData>> playerData = new HashMap<JavaPlugin, Class<? extends PluginPlayerData>>();
     private static final ConcurrentHashMap<UUID, PlayerWrapper> wrappers = new ConcurrentHashMap<>();
 
     @Getter
@@ -51,7 +55,7 @@ public class BGDCore extends JavaPlugin {
         }
         playerFolder = new File(getDataFolder(), "players");
         if (!playerFolder.exists() && !playerFolder.mkdir()) {
-            logging.warning("Failed to create palyer data folder! Will continue on..");
+            logging.warning("Failed to create player data folder! Will continue on..");
         }
 
         // register our own configuration
@@ -112,6 +116,18 @@ public class BGDCore extends JavaPlugin {
         configurations.add(configurationFile);
     }
 
+    public static void registerPluginPlayerData(JavaPlugin plugin, Class<? extends PluginPlayerData> data) {
+        playerData.put(plugin, data);
+
+        for (PlayerWrapper wrapper : wrappers.values()) {
+            try {
+                wrapper.load(plugin, data.getConstructor().newInstance());
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public static PlayerWrapper getPlayerWrapper(Player player) {
         return getPlayerWrapper(player.getUniqueId());
     }
@@ -149,13 +165,18 @@ public class BGDCore extends JavaPlugin {
                 JSONObject jsonObject = jsonInputStream.readObject();
                 IOUtils.closeQuietly(jsonInputStream);
 
-                for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
-                    playerWrapper.put(entry.getKey(), entry.getValue());
-                }
+                playerWrapper.putAll(jsonObject);
             }
         } catch (IOException e) {
             // neither of these should happen, but oh well
             e.printStackTrace();
+        }
+        for (Map.Entry<JavaPlugin, Class<? extends PluginPlayerData>> entry : playerData.entrySet()) {
+            try {
+                playerWrapper.load(entry.getKey(), entry.getValue().getConstructor().newInstance());
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
         }
         return playerWrapper;
     }
@@ -174,6 +195,7 @@ public class BGDCore extends JavaPlugin {
                 // disabling!
             }
         }
+        playerWrapper.save();
         Validate.notNull(playerWrapper);
         debug("Saving " + playerWrapper.getUniqueId());
         try {
@@ -186,7 +208,7 @@ public class BGDCore extends JavaPlugin {
     }
 
     private static String getUUIDHash(UUID uniqueId) {
-        return uniqueId.toString();
+        return uniqueId.toString() + ".bgd";
     }
 
     public static List<PlayerWrapper> loadAllWrappers() {
