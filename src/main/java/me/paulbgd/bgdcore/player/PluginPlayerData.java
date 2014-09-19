@@ -14,7 +14,9 @@ public class PluginPlayerData {
     void load(JSONObject data) {
         checkLoad();
         for (Map.Entry<String, ReflectionField> entry : fields.entrySet()) {
-            entry.getValue().setValue(data.get(entry.getKey()));
+            if (data.containsKey(entry.getKey()) && data.get(entry.getKey()) != null) {
+                entry.getValue().setValue(data.get(entry.getKey()));
+            }
         }
     }
 
@@ -22,7 +24,7 @@ public class PluginPlayerData {
         checkLoad();
         JSONObject data = new JSONObject();
         for (Map.Entry<String, ReflectionField> entry : fields.entrySet()) {
-            data.put(entry.getKey(), entry.getValue().getValue());
+            data.put(entry.getKey(), entry.getValue().getValue().getObject());
         }
         return data;
     }
@@ -31,6 +33,9 @@ public class PluginPlayerData {
         if (!loaded) {
             loaded = true;
             for (Field field : getClass().getDeclaredFields()) {
+                if (field.getName().equals("fields") || field.getName().equals("loaded")) {
+                    continue;
+                }
                 fields.put(field.getName(), new ReflectionField(this, field));
             }
         }

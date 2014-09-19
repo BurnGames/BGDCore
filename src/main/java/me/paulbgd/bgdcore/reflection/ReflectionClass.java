@@ -15,7 +15,11 @@ public class ReflectionClass {
     public ReflectionObject newInstance(Object... arguments) {
         try {
             if (arguments.length == 0) {
-                return new ReflectionObject(clazz.newInstance());
+                Constructor constructor = clazz.getDeclaredConstructor();
+                if (!constructor.isAccessible()) {
+                    constructor.setAccessible(true);
+                }
+                return new ReflectionObject(constructor.newInstance());
             }
             Constructor<?> constructor = clazz.getDeclaredConstructor(Reflection.objectsToClassArray(arguments));
             if (!constructor.isAccessible()) {

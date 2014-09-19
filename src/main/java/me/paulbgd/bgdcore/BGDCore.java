@@ -13,12 +13,12 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 import lombok.Getter;
 import me.paulbgd.bgdcore.commands.def.ReloadConfigCommand;
 import me.paulbgd.bgdcore.configuration.ConfigurationFile;
 import me.paulbgd.bgdcore.configuration.CoreConfiguration;
 import me.paulbgd.bgdcore.io.json.JSONInputStream;
-import me.paulbgd.bgdcore.io.json.JSONOutputStream;
 import me.paulbgd.bgdcore.listeners.PlayerListener;
 import me.paulbgd.bgdcore.nms.NMSManager;
 import me.paulbgd.bgdcore.player.PlayerWrapper;
@@ -78,6 +78,13 @@ public class BGDCore extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // to hack our JSONOutputStream back in
+        /*try {
+            ClassLoader classLoader = new URLClassLoader(new URL[]{getFile().toURI().toURL()});
+            classLoader.loadClass("me.paulbgd.bgdcore.io.json.JSONOutputStream");
+        } catch (ClassNotFoundException | MalformedURLException e) {
+            e.printStackTrace();
+        }*/
         for (PlayerWrapper playerWrapper : wrappers.values()) {
             savePlayerWrapper(playerWrapper);
         }
@@ -200,7 +207,8 @@ public class BGDCore extends JavaPlugin {
         debug("Saving " + playerWrapper.getUniqueId());
         try {
             File file = new File(playerFolder, getUUIDHash(playerWrapper.getUniqueId()));
-            JSONOutputStream jsonOutputStream = new JSONOutputStream(playerWrapper, new FileOutputStream(file));
+            GZIPOutputStream jsonOutputStream = new GZIPOutputStream(new FileOutputStream(file));
+            IOUtils.write(playerWrapper.toJSONString(), jsonOutputStream);
             jsonOutputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -215,7 +223,7 @@ public class BGDCore extends JavaPlugin {
         List<PlayerWrapper> wrappers = new ArrayList<>();
         if (playerFolder != null && playerFolder.isDirectory()) {
             for (String file : playerFolder.list()) {
-                wrappers.add(loadPlayerWrapper(UUID.fromString(file)));
+                wrappers.add(loadPlayerWrapper(UUID.fromString(file.split("\\.")[0])));
             }
         }
         return wrappers;

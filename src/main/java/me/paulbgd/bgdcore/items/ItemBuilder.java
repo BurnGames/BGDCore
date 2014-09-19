@@ -108,7 +108,7 @@ public class ItemBuilder {
      * Contains all of the item data.
      */
     @Getter
-    private JSONObject nbt;
+    private JSONObject nbt = new JSONObject();
 
     /**
      * Instantiates a new item builder.

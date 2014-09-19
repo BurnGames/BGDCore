@@ -63,7 +63,7 @@ public class v1_7_R1 implements BGDNMS {
     @Override
     public TransitionItem getItem(ItemStack itemStack) {
         TransitionItem transitionItem = new TransitionItem();
-        ReflectionObject nmsItem = NMSReflection.craftItemStack.getStaticMethod("asNMSCopy", itemStack).invoke(itemStack);
+        ReflectionObject nmsItem = NMSReflection.craftItemStack.getStaticMethod("asNMSCopy", new Class[]{ItemStack.class}).invoke(itemStack);
         ReflectionObject nbt = NMSReflection.nbtTagCompound.newInstance();
         nmsItem.getMethod("save", nbt.getObject()).invoke(nbt.getObject());
         JSONObject jsonObject = nbtToJSON(nbt.getObject());
