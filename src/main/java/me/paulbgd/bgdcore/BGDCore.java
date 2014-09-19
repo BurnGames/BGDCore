@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
 import lombok.Getter;
+import me.paulbgd.bgdcore.commands.def.ItemData;
 import me.paulbgd.bgdcore.commands.def.ReloadConfigCommand;
 import me.paulbgd.bgdcore.configuration.ConfigurationFile;
 import me.paulbgd.bgdcore.configuration.CoreConfiguration;
@@ -66,6 +67,7 @@ public class BGDCore extends JavaPlugin {
 
         // register our own commands
         new ReloadConfigCommand(this);
+        new ItemData(this);
 
         // register our own listeners
         getServer().getPluginManager().registerEvents(new PlayerListener(), this);

@@ -12,6 +12,7 @@ import me.paulbgd.bgdcore.reflection.ReflectionMethod;
 import me.paulbgd.bgdcore.reflection.ReflectionObject;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
@@ -62,6 +63,7 @@ public class v1_7_R1 implements BGDNMS {
 
     @Override
     public TransitionItem getItem(ItemStack itemStack) {
+        Validate.notNull(itemStack);
         TransitionItem transitionItem = new TransitionItem();
         ReflectionObject nmsItem = NMSReflection.craftItemStack.getStaticMethod("asNMSCopy", new Class[]{ItemStack.class}).invoke(itemStack);
         ReflectionObject nbt = NMSReflection.nbtTagCompound.newInstance();
