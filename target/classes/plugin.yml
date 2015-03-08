@@ -1,0 +1,7 @@
+name: BGDCore
+version: 1.0.3-SNAPSHOT
+author: PaulBGD
+description: A core utility ran as a plugin to save myself from doing all normal stuff by hand each time.
+main: me.paulbgd.bgdcore.BGDCore
+
+load: STARTUP
